@@ -1,46 +1,40 @@
-import React, { useState, useContext } from 'react';
-import { ItemContext } from '../context/ItemContext';
+import React, { useState } from 'react';
+import axios from 'axios';
 
-function AddItem() {
-  const { addItem } = useContext(ItemContext);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+const AddItem = () => {
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [price, setPrice] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (name.trim() && description.trim()) {
-      const newItem = { name, description };
-      await addItem(newItem);  // Call addItem from context
-      setName('');  // Clear form fields
-      setDescription('');
-    } else {
-      alert('Please fill in all fields');
-    }
-  };
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem('access_token');
+        
+        axios.post('http://127.0.0.1:8000/api/items/', {
+            name,
+            description,
+            price
+        }, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            }
+        })
+        .then((response) => {
+            console.log('Item added:', response.data);
+        })
+        .catch((error) => {
+            console.error('Error adding item:', error);
+        });
+    };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label>Item Name</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label>Description</label>
-        <input
-          type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-        />
-      </div>
-      <button type="submit">Add Item</button>
-    </form>
-  );
-}
+    return (
+        <form onSubmit={handleSubmit}>
+            <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
+            <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <input type="number" placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} />
+            <button type="submit">Add Item</button>
+        </form>
+    );
+};
 
 export default AddItem;

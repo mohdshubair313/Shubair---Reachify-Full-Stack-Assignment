@@ -1,30 +1,35 @@
-// src/components/ItemList.jsx
-import React, { useContext, useEffect } from 'react'; // Import useContext here
-import Item from './Item';
-import { ItemContext } from '../context/ItemContext';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
-function ItemList() {
-  const { items, fetchItems, loading, error } = useContext(ItemContext); // useContext properly used here
+const ItemList = () => {
+    const [items, setItems] = useState([]);
 
-  useEffect(() => {
-    fetchItems();
-  }, []);
+    useEffect(() => {
+        axios.get('http://127.0.0.1:8000/api/items/', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+            }
+        })
+        .then((response) => {
+            setItems(response.data);
+        })
+        .catch((error) => {
+            console.error('Error fetching items:', error);
+        });
+    }, []);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error loading items.</p>;
-
-  // Ensure items is always an array
-  if (!Array.isArray(items)) {
-    return <p>No items available.</p>;
-  }
-
-  return (
-    <div>
-      {items.map((item) => (
-        <Item key={item.id} item={item} />
-      ))}
-    </div>
-  );
-}
+    return (
+        <div>
+            <h2>Items</h2>
+            <ul>
+                {items.map(item => (
+                    <li key={item.id}>
+                        {item.name} - ${item.price}
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+};
 
 export default ItemList;
